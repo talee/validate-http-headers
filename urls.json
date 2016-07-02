@@ -1,7 +1,7 @@
 {
   "default": {
     "requestHeaders": {
-      "Referer": ["https://www.qbo.intuit.com"]
+      "Referer": ["https://golang.org"]
     },
     "responseHeaders": {
       "X-Frame-Options": ["SAMEORIGIN"]
@@ -10,12 +10,18 @@
 
   "specs": [
     {
-      "url": "https://www.google.com",
+      "url": "https://www.google.com/",
       "requestHeaders": {
-        "Referer": ["https://www.qbo.intuit.com"]
+        "Referer": ["https://drive.google.com"]
       },
       "responseHeaders": {
-        "X-Frame-Options": ["SAMEORIGIN"]
+        "Expires": ["-1"]
+      }
+    },
+    {
+      "url": "https://drive.google.com/",
+      "responseHeaders": {
+        "X-Frame-Options": [""]
       }
     }
   ]
