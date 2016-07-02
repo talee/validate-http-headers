@@ -58,7 +58,7 @@ func main() {
 		// Setup request headers
 		req, err := http.NewRequest("GET", spec.Url, nil)
 		if err != nil {
-			fmt.Printf("Failed to create request:", err)
+			fmt.Printf("Failed to create request: %v\n", err)
 			os.Exit(InvalidRequest)
 		}
 		for key, headerValues := range spec.RequestHeaders {
@@ -71,7 +71,7 @@ func main() {
 		fmt.Println("\nURL:", req.URL)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			fmt.Printf("http.Get => %v", err.Error())
+			fmt.Printf("http.Get => %v\n", err.Error())
 			os.Exit(FailedRequest)
 		}
 
