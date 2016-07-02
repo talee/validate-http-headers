@@ -2,6 +2,16 @@
 Utility to validate HTTP headers of multiple URLs based on a JSON spec. Useful
 to quickly set default request headers and automate network deployment testing.
 
+## Install
+
+Download a binary from https://github.com/talee/validate-http-headers/releases
+
+Otherwise, if you have golang, install via go get:
+
+	go get github.com/talee/validate-http-headers
+
+## Usage
+
 Write a JSON spec file for the validator to use: e.g. urls.json
 
 Pass it to the validator
