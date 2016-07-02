@@ -30,25 +30,35 @@ const (
 )
 
 func main() {
-	var filename string
-	if len(os.Args) == 2 {
-		filename = os.Args[1]
+	var filenames []string
+	if len(os.Args) == 1 {
+		filenames = []string{"urls.json"}
 	} else {
-		filename = "urls.json"
+		filenames = os.Args[1:]
 	}
+	for _, filename := range filenames {
+		validateSpecFile(filename)
+	}
+}
+
+func validateSpecFile(filename string) {
+	fmt.Println("\n------------------------------------------------------------------------")
+	fmt.Println("FILE:", filename)
 	// Read file
 	file, e := ioutil.ReadFile(filename)
 	if e != nil {
-		fmt.Printf("File error: %v\n", e)
-		os.Exit(FileError)
+		fmt.Printf("ERROR: File error: %v\n", e)
+		return
+		//os.Exit(FileError)
 	}
 
 	// Marshal from JSON
 	var specContainer SpecContainer
 	e = json.Unmarshal(file, &specContainer)
 	if e != nil {
-		fmt.Printf("Unmarshal error: %v\n", e)
-		os.Exit(UnmarshalError)
+		fmt.Printf("ERROR: Unmarshal error: %v\n", e)
+		return
+		//os.Exit(UnmarshalError)
 	}
 	specs := specContainer.Specs
 	defaultSpec := specContainer.Default
@@ -58,10 +68,12 @@ func main() {
 		// Setup request headers
 		req, err := http.NewRequest("GET", spec.Url, nil)
 		if err != nil {
-			fmt.Printf("Failed to create request: %v\n", err)
-			os.Exit(InvalidRequest)
+			fmt.Printf("ERROR: Failed to create request: %v\n", err)
+			break
+			//os.Exit(InvalidRequest)
 		}
-		for key, headerValues := range spec.RequestHeaders {
+		requestHeaders := clone(defaultSpec.RequestHeaders, spec.RequestHeaders)
+		for key, headerValues := range requestHeaders {
 			for _, val := range headerValues {
 				req.Header.Add(key, val)
 			}
@@ -71,8 +83,9 @@ func main() {
 		fmt.Println("\nURL:", req.URL)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			fmt.Printf("http.Get => %v\n", err.Error())
-			os.Exit(FailedRequest)
+			fmt.Printf("ERROR: Failed to request: %v\n", err.Error())
+			break
+			//os.Exit(FailedRequest)
 		}
 
 		// Validate response headers
