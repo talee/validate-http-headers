@@ -1,0 +1,22 @@
+{
+  "default": {
+    "requestHeaders": {
+      "Referer": ["https://www.qbo.intuit.com"]
+    },
+    "responseHeaders": {
+      "X-Frame-Options": ["SAMEORIGIN"]
+    }
+  },
+
+  "specs": [
+    {
+      "url": "https://www.google.com",
+      "requestHeaders": {
+        "Referer": ["https://www.qbo.intuit.com"]
+      },
+      "responseHeaders": {
+        "X-Frame-Options": ["SAMEORIGIN"]
+      }
+    }
+  ]
+}
