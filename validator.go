@@ -21,7 +21,8 @@ type SpecContainer struct {
 }
 
 const (
-	FileError = iota
+	_ = iota
+	FileError
 	UnmarshalError
 	InvalidRequest
 	FailedRequest
