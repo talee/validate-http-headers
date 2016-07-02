@@ -36,20 +36,27 @@ func main() {
 	} else {
 		filenames = os.Args[1:]
 	}
+	exitCodes := make([]int, 0)
 	for _, filename := range filenames {
-		validateSpecFile(filename)
+		errorCodes := validateSpecFile(filename)
+		if len(errorCodes) > 0 {
+			fmt.Println("ERROR CODES:", errorCodes)
+			exitCodes = append(exitCodes, errorCodes...)
+		}
+	}
+	if len(exitCodes) > 0 {
+		os.Exit(exitCodes[0])
 	}
 }
 
-func validateSpecFile(filename string) {
+func validateSpecFile(filename string) []int {
 	fmt.Println("\n------------------------------------------------------------------------")
 	fmt.Println("FILE:", filename)
 	// Read file
 	file, e := ioutil.ReadFile(filename)
 	if e != nil {
 		fmt.Printf("ERROR: File error: %v\n", e)
-		return
-		//os.Exit(FileError)
+		return []int{FileError}
 	}
 
 	// Marshal from JSON
@@ -57,20 +64,20 @@ func validateSpecFile(filename string) {
 	e = json.Unmarshal(file, &specContainer)
 	if e != nil {
 		fmt.Printf("ERROR: Unmarshal error: %v\n", e)
-		return
-		//os.Exit(UnmarshalError)
+		return []int{UnmarshalError}
 	}
 	specs := specContainer.Specs
 	defaultSpec := specContainer.Default
 
 	// Request each URL in specs
+	errorCodes := make([]int, 0, len(specs))
 	for _, spec := range specs {
 		// Setup request headers
-		req, err := http.NewRequest("GET", spec.Url, nil)
-		if err != nil {
-			fmt.Printf("ERROR: Failed to create request: %v\n", err)
+		req, e := http.NewRequest("GET", spec.Url, nil)
+		if e != nil {
+			fmt.Printf("ERROR: Failed to create request: %v\n", e)
+			errorCodes = append(errorCodes, InvalidRequest)
 			break
-			//os.Exit(InvalidRequest)
 		}
 		requestHeaders := clone(defaultSpec.RequestHeaders, spec.RequestHeaders)
 		for key, headerValues := range requestHeaders {
@@ -81,11 +88,11 @@ func validateSpecFile(filename string) {
 
 		// Send request
 		fmt.Println("\nURL:", req.URL)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			fmt.Printf("ERROR: Failed to request: %v\n", err.Error())
+		resp, e := http.DefaultClient.Do(req)
+		if e != nil {
+			fmt.Printf("ERROR: Failed to request: %v\n", e)
+			errorCodes = append(errorCodes, FailedRequest)
 			break
-			//os.Exit(FailedRequest)
 		}
 
 		// Validate response headers
@@ -107,6 +114,7 @@ func validateSpecFile(filename string) {
 					expectedNumHeaderValues,
 					expectedHeaderValues,
 					resp.Header[key])
+				errorCodes = append(errorCodes, MissingResponseHeader)
 				continue
 			} else if expectedNumHeaderValues == 0 {
 				fmt.Println("SUCCESS: Response header '"+key+"' should not",
@@ -121,6 +129,7 @@ func validateSpecFile(filename string) {
 					fmt.Printf("Header assertion failed: Expected '%v'"+
 						"to have '%v' instead of '%v'\n", key,
 						expectedHeaderValue, respHeaderValue)
+					errorCodes = append(errorCodes, FailAssertResponseHeaderValue)
 				} else {
 					fmt.Println("SUCCESS: Expected", "'"+key+"'",
 						"to have", "'"+expectedHeaderValue+"'", "match",
@@ -129,6 +138,7 @@ func validateSpecFile(filename string) {
 			}
 		}
 	}
+	return errorCodes
 }
 
 // Returns a merge of the maps. Nil values ignored

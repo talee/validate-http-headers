@@ -22,6 +22,9 @@ Multiple JSON specs can be passed
 
 	$ ./validate-http-headers internal.json external.json mtv.json
 
+Non-zero exit codes indicate failure. All failures begin with "FAIL: "; exit
+code constants can be found in validator.go.
+
 Simple spec:
 
     {
