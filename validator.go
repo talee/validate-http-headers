@@ -30,9 +30,48 @@ const (
 	FailAssertResponseHeaderValue
 )
 
+const DEFAULT_SPEC_FILE = "urls.json"
+const MANUAL = `Usage: validate-http-headers SPECFILES...
+Iterates through SPECFILES, making requests and validating responses headers
+
+Multiple JSON specs can be passed
+
+$ ./validate-http-headers internal.json external.json mtv.json
+
+Non-zero exit codes indicate failure. All failures begin with "FAIL: "; exit
+code constants can be found in validator.go.
+
+Simple spec:
+
+{
+  "default": {
+    "requestHeaders": {
+      "Referer": ["https://bad-website.com"]
+    },
+    "responseHeaders": {
+      "X-Frame-Options": ["SAMEORIGIN"]
+    }
+  },
+
+  "specs": [
+    {
+      "url": "https://www.google.com/"
+    },
+    {
+      "url": "https://drive.google.com/"
+    }
+  ]
+}
+
+Full documentation at: <https://github.com/talee/validate-http-headers>`
+
 func main() {
 	var filenames []string
 	if len(os.Args) == 1 {
+		if _, err := os.Stat(DEFAULT_SPEC_FILE); os.IsNotExist(err) {
+			fmt.Println(MANUAL)
+			os.Exit(0)
+		}
 		filenames = []string{"urls.json"}
 	} else {
 		filenames = os.Args[1:]
