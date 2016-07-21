@@ -143,12 +143,12 @@ func validateSpecFile(filename string) []int {
 		// Send request
 		fmt.Println("\nURL:", req.URL)
 		resp, e := NoCacheClient.Do(req)
-		resp.Body.Close()
 		if e != nil {
 			fmt.Printf("ERROR: Failed to request: %v\n", e)
 			errorCodes = append(errorCodes, FailedRequest)
 			break
 		}
+		resp.Body.Close()
 
 		// Validate response headers
 		expectedHeaders := clone(defaultSpec.ResponseHeaders,
