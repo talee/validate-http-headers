@@ -30,6 +30,18 @@ const (
 	FailAssertResponseHeaderValue
 )
 
+// In case there is a proxy caching resources. Potentially appending a URL
+// parameter would work better.
+var NoCacheRequestHeaders = map[string][]string{
+	"Cache-Control": []string{"no-cache"},
+}
+
+var NoCacheClient = &http.Client{
+	Transport: &http.Transport{
+		DisableKeepAlives: true,
+	},
+}
+
 const DEFAULT_SPEC_FILE = "urls.json"
 const MANUAL = `Usage: validate-http-headers SPECFILES...
 Iterates through SPECFILES, making requests and validating responses headers
@@ -119,7 +131,9 @@ func validateSpecFile(filename string) []int {
 			errorCodes = append(errorCodes, InvalidRequest)
 			break
 		}
-		requestHeaders := clone(defaultSpec.RequestHeaders, spec.RequestHeaders)
+		requestHeaders := clone(NoCacheRequestHeaders,
+			defaultSpec.RequestHeaders,
+			spec.RequestHeaders)
 		for key, headerValues := range requestHeaders {
 			for _, val := range headerValues {
 				req.Header.Add(key, val)
@@ -128,7 +142,8 @@ func validateSpecFile(filename string) []int {
 
 		// Send request
 		fmt.Println("\nURL:", req.URL)
-		resp, e := http.DefaultClient.Do(req)
+		resp, e := NoCacheClient.Do(req)
+		resp.Body.Close()
 		if e != nil {
 			fmt.Printf("ERROR: Failed to request: %v\n", e)
 			errorCodes = append(errorCodes, FailedRequest)
